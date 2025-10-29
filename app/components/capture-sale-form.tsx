@@ -1,40 +1,87 @@
-import React from 'react';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
+import React, { useEffect, useState } from 'react';
+import { Button, Text, TextInput, View, StyleSheet } from 'react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
+import axios from 'axios';
+
+class Todo {
+  constructor(
+    public userId: number, 
+    public id: number, 
+    public title: string, 
+    public completed: boolean
+   ) {
+  }
+}
+
+class DropDownItem {
+  constructor(
+    public key: string,
+    public label: string,
+    public value: string
+  ) {
+  }
+}
 
 const CaptureSaleForm = () => {
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [customer, setCustomer] = useState(null);
+  const [customers, setCustomers] = useState<DropDownItem[]>([ ]);
 
-    const formData = new FormData(e.target);
-    const payload = Object.fromEntries(formData);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('https://jsonplaceholder.typicode.com/todos/');
+        setCustomers(
+          response
+          .data
+          .map(
+            (item: Todo) => new DropDownItem(
+              item.id.toString(), 
+              item.title, 
+              JSON.stringify(item)
+            )
+          ));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    console.log(payload);
+    fetchData();
+  }, []);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }
+  });
+
+  const onSubmit = () => {
+    console.log(customer);
   };
   return (
-    <>
-      <h2>Capture Sale Form</h2>
-      <form onSubmit={handleSubmit}>
-        <Form.Group>
-          <Form.Label>other</Form.Label>
-        <Form.Select name="other" aria-label="Default select example">
-          <option>Open this select menu</option>
-          <option value="1">One</option>
-          <option value="2">Two</option>
-          <option value="3">Three</option>
-        </Form.Select>
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Customer</Form.Label>
-          <Form.Control type="text" name="customer" placeholder="Enter customer" />
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Product</Form.Label>
-          <Form.Control type="text" name="product" placeholder="Enter product" />
-        </Form.Group>
-        <Button type="submit" variant="primary">Submit</Button>
-      </form>
-    </>
+    <View style={styles.container}>
+      <Text>Login Form</Text>
+      <DropDownPicker
+        open={open}
+        setOpen={setOpen}
+        value={customer}
+        setValue={setCustomer}
+        items={customers}
+        setItems={setCustomers}
+        placeholder="Select a fruit"
+        listMode="SCROLLVIEW"
+        multiple={false}
+      />
+      <TextInput
+        placeholder="Password"
+      />
+      <Button title="Submit" onPress={onSubmit} />
+    </View>
   );
 };
 
