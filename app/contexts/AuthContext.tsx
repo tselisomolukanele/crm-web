@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as AuthSession from 'expo-auth-session';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '../utils/storage';
 import * as WebBrowser from 'expo-web-browser';
 
 // Required for expo-auth-session to properly handle redirects
@@ -43,7 +43,7 @@ export function AuthProvider({ children, oauthConfig }: AuthProviderProps) {
 
   const loadStoredToken = async () => {
     try {
-      const storedToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      const storedToken = await storage.getItem(TOKEN_KEY);
       if (storedToken) {
         setToken(storedToken);
       }
@@ -108,10 +108,10 @@ export function AuthProvider({ children, oauthConfig }: AuthProviderProps) {
         const tokenData = await tokenResponse.json();
 
         if (tokenData.access_token) {
-          await SecureStore.setItemAsync(TOKEN_KEY, tokenData.access_token);
+          await storage.setItem(TOKEN_KEY, tokenData.access_token);
           
           if (tokenData.refresh_token) {
-            await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokenData.refresh_token);
+            await storage.setItem(REFRESH_TOKEN_KEY, tokenData.refresh_token);
           }
           
           setToken(tokenData.access_token);
@@ -131,8 +131,8 @@ export function AuthProvider({ children, oauthConfig }: AuthProviderProps) {
 
   const logout = async () => {
     try {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
-      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+      await storage.deleteItem(TOKEN_KEY);
+      await storage.deleteItem(REFRESH_TOKEN_KEY);
       setToken(null);
     } catch (error) {
       console.error('Logout error:', error);
@@ -141,7 +141,7 @@ export function AuthProvider({ children, oauthConfig }: AuthProviderProps) {
 
   const refreshToken = async () => {
     try {
-      const refreshTokenValue = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      const refreshTokenValue = await storage.getItem(REFRESH_TOKEN_KEY);
       if (!refreshTokenValue) {
         throw new Error('No refresh token available');
       }
@@ -172,10 +172,10 @@ export function AuthProvider({ children, oauthConfig }: AuthProviderProps) {
       const tokenData = await tokenResponse.json();
 
       if (tokenData.access_token) {
-        await SecureStore.setItemAsync(TOKEN_KEY, tokenData.access_token);
+        await storage.setItem(TOKEN_KEY, tokenData.access_token);
         
         if (tokenData.refresh_token) {
-          await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokenData.refresh_token);
+          await storage.setItem(REFRESH_TOKEN_KEY, tokenData.refresh_token);
         }
         
         setToken(tokenData.access_token);
